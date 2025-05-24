@@ -8,24 +8,8 @@ userRouter.get('/', authorize, UserController.getUsers);
 
 userRouter.get('/:id', authorize, UserController.getUser);
 
-userRouter.post('/', (req, res) => {
-    res.send({
-        title: "CREATE a new user"
-    })
-});
+userRouter.put('/:id', authorize, UserController.updateUser);
 
-
-userRouter.put('/:id', (req, res) => {
-    res.send({
-        title: "UPDATE a user"
-    })
-});
-
-userRouter.delete('/:id', (req, res) => {
-    res.send({
-        title: "DELETE a user"
-    })
-});
-
+userRouter.delete('/:id', authorize, UserController.deleteUser);
 
 export default userRouter;

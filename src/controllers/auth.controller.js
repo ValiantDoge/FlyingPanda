@@ -8,9 +8,8 @@ import Token from "../models/token.model.js";
 // Controller to sign-up an user
 export const signUp = async(req, res, next) => {
     const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
+        session.startTransaction();
         // Create a new user
         const { username, email, password } = req.body;
 
@@ -39,6 +38,9 @@ export const signUp = async(req, res, next) => {
             token: refreshToken,
             isRevoked: false,
         }], { session });
+        
+        await session.commitTransaction();
+        session.endSession();
 
         res.status(201).json({
             success: true,
@@ -48,9 +50,7 @@ export const signUp = async(req, res, next) => {
                 refreshToken,
                 user: newUser[0],
             }
-        })
-
-        await session.commitTransaction();
+        });
     } catch (error) {
         await session.abortTransaction();
         session.endSession();
@@ -61,8 +61,9 @@ export const signUp = async(req, res, next) => {
 // Controller to sign-in an user
 export const signIn = async(req, res, next) => {
     const session = await mongoose.startSession();
-    session.startTransaction();
     try {
+        session.startTransaction();
+        
         const { email, password } = req.body;
         
         const user = await User.findOne({ "email": email });
@@ -99,6 +100,9 @@ export const signIn = async(req, res, next) => {
             }], { session });
         }
 
+        await session.commitTransaction();
+        session.endSession();
+
          res.status(200).json({
             success: true,
             message: "User signed in successfully",
@@ -107,8 +111,8 @@ export const signIn = async(req, res, next) => {
                 refreshToken,
                 user,
             }
-         })
-         await session.commitTransaction();
+         });
+         
     } catch (error) {
         await session.abortTransaction();
         session.endSession();
@@ -119,9 +123,10 @@ export const signIn = async(req, res, next) => {
 // Controller to sign-out an user
 export const signOut = async(req, res, next) => {
     const session = await mongoose.startSession();
-    session.startTransaction();
-
+    
     try {
+
+        session.startTransaction();
         // Delete refresh token from database
         const { refreshToken } = req.body;
         if(!refreshToken) {
@@ -139,12 +144,16 @@ export const signOut = async(req, res, next) => {
 
         // Delete token
         await Token.deleteOne({ token: refreshToken }, { session });
+
+        await session.commitTransaction();
+        session.endSession();
+        
         res.status(200).json({
             success: true,
             message: "User signed out successfully",
-        })
+        });
         
-        await session.commitTransaction();
+        
     } catch (error) {
         await session.abortTransaction();
         session.endSession();
@@ -188,7 +197,7 @@ export const refreshAccessToken = async(req, res, next) => {
             data: {
                 accessToken,
             }
-        })
+        });
         
         
     } catch (error) {
