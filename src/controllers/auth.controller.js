@@ -35,7 +35,7 @@ export const signUp = async(req, res, next) => {
 
         // Save refresh token to database
         await Token.create([{
-            user: newUser[0]._id,
+            userId: newUser[0]._id,
             token: refreshToken,
             isRevoked: false,
         }], { session });
@@ -93,7 +93,7 @@ export const signIn = async(req, res, next) => {
             );
         } else {
             await Token.create([{
-            user: user._id,
+            userId: user._id,
             token: refreshToken,
             isRevoked: false,
             }], { session });
