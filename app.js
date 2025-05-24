@@ -6,7 +6,7 @@ import userRouter from "./src/routes/user.routes.js";
 import authRouter from "./src/routes/auth.routes.js";
 import connectToDatabase from "./src/database/mongodb.js";
 import errorMiddleware from "./src/middlewares/error.middleware.js";
-import { mongo } from "mongoose";
+import flightRouter from "./src/routes/flight.routes.js";
 
 const app = express();
 
@@ -14,8 +14,9 @@ const app = express();
 app.use(express.json()); // Middleware to handle JSON data which is send in request
 app.use(express.urlencoded({extended: false})); // Middlware process form data send in HTML Forms
 
-app.use("/api/auth", authRouter)
-app.use("/api/users", userRouter)
+app.use("/api/auth", authRouter);
+app.use("/api/users", userRouter);
+app.use("/api/flights", flightRouter);
 
 app.use(errorMiddleware); // Middleware to log any errors
 
