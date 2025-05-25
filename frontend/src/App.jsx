@@ -1,9 +1,11 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './App.css';
-import { FlightSearch } from './components/FlightSearch';
 import Login from './pages/Login';
 import Home from "./pages/Home";
 import RequireAuth from './components/RequireAuth';
+import { Toaster } from 'react-hot-toast';
+import Bookings from './pages/Bookings';
+
 
 const router = createBrowserRouter([
   {
@@ -15,9 +17,9 @@ const router = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: 'search',
-        element: <FlightSearch />,
-      },
+        path: 'bookings',
+        element: <Bookings/>
+      }
     ],
   },
   {
@@ -27,7 +29,14 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  return <RouterProvider router={router} />;
-}
+  return (
+    <>
+      {/* Toast container for notifications */}
+      <Toaster position="top-right" reverseOrder={false} />
 
+      {/* RouterProvider renders your routing setup */}
+      <RouterProvider router={router} />
+    </>
+  );
+}
 export default App;

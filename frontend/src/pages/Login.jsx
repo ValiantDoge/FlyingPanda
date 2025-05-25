@@ -2,6 +2,8 @@ import { useState } from "react";
 import axios from "../api/axios";
 import useAuth from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { toast } from 'react-hot-toast';
+
 
 
 const Login = () => {
@@ -45,12 +47,12 @@ const Login = () => {
             };
             
             setAuth(authData);
-            console.log("Login successful:", auth);
+            toast.success("Successfully logged in!")
 
             // Redirect to protected route
             navigate("/", { replace: true });
         } catch (error) {
-            console.error("Error during login:", error.response.data);
+           toast.error(error.response.data.error);
             return;
             
         }
