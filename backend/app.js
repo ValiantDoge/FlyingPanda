@@ -8,6 +8,7 @@ import connectToDatabase from "./src/database/mongodb.js";
 import errorMiddleware from "./src/middlewares/error.middleware.js";
 import flightRouter from "./src/routes/flight.routes.js";
 import cors from "cors";
+import bookingRouter from "./src/routes/booking.routes.js";
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use(cors(corsOptions));
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/flights", flightRouter);
+app.use("/api/booking", bookingRouter);
 
 app.use(errorMiddleware); // Middleware to log any errors
 
