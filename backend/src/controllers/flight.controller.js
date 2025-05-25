@@ -1,6 +1,4 @@
 import Flight from "../models/flight.model.js";
-import Booking from "../models/booking.model.js";
-import mongoose from "mongoose";
 
 export const getAllFlights = async (req, res, next) => {
   try {
