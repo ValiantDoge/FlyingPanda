@@ -32,12 +32,6 @@ const flightSchema = new mongoose.Schema({
     departure: {
         type: Date,
         required: [true, "Departure time is required!"],
-        validate: {
-            validator: function(value){
-                return value > new Date();
-            },
-            message: "Departure time must be in the future!"
-        }
     },
     arrival: {
         type: Date,
