@@ -21,7 +21,136 @@ const INDIAN_AIRPORTS = [
   { code: "COK", name: "Kochi (Cochin International)" },
 ];
 
+const BookingModal = ({ flight, returnFlight, passengers, onClose, onConfirm, price }) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleBooking = async () => {
+    setLoading(true);
+    try {
+      await onConfirm();
+      onClose();
+    } catch (error) {
+      console.error("Booking failed:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold mb-4">Confirm Booking</h2>
+        
+        <div className="mb-4">
+          <h3 className="font-semibold">Outbound Flight Details</h3>
+          <p>
+            {flight.airline} ({flight.airlineCode}) - {flight.origin} to {flight.destination}
+          </p>
+          <p>
+            Departure: {new Date(flight.departure).toLocaleString()}
+          </p>
+          <p>Duration: {flight.duration}</p>
+          <p>Price: ₹{flight.price}</p>
+        </div>
+
+        {returnFlight && (
+           <div className="mb-4">
+          <h3 className="font-semibold">Return Flight Details</h3>
+          <p>
+            {returnFlight.airline} ({returnFlight.airlineCode}) - {returnFlight.origin} to {returnFlight.destination}
+          </p>
+          <p>
+            Departure: {new Date(returnFlight.departure).toLocaleString()}
+          </p>
+          <p>Duration: {returnFlight.duration}</p>
+          <p>Price: ₹{returnFlight.price}</p>
+        </div>
+        )
+        }
+
+        <div className="mb-4">
+          <p>Total Price: ₹{price}</p>
+        </div>
+       
+
+        <div className="mb-4">
+          <h3 className="font-semibold">Passenger Details</h3>
+          <p>Number of Passengers: {passengers}</p>
+        </div>
+
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
+            disabled={loading}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleBooking}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            disabled={loading}
+          >
+            {loading ? "Processing..." : "Confirm Booking"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const FlightSearch = () => {
+  const [selectedFlight, setSelectedFlight] = useState(null);
+  const [selectedReturn, setReturnFlight] = useState(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedPrice, setSelectedPrice] = useState(null);
+
+  const handleBookClick = (flight) => {
+    setSelectedFlight(flight.outbound || flight);
+    if (flight.return) setReturnFlight(flight.return);
+    setShowBookingModal(true);
+    setSelectedPrice(flight.price);
+  };
+
+  const handleConfirmBooking = async () => {
+    try {
+      await axiosInstance.post(
+        `${BACKEND_URL}/api/booking/book-flight`,
+        {
+          flightId: selectedFlight._id,
+          passengers: formData.passengers,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+
+      if(selectedReturn){
+        await axiosInstance.post(
+        `${BACKEND_URL}/api/booking/book-flight`,
+        {
+          flightId: selectedReturn._id,
+          passengers: formData.passengers,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      }
+      toast.success("Booking confirmed!");
+      // You might want to redirect to bookings page or show success message
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Booking failed");
+      throw error;
+    }
+  };
+
   const [tripType, setTripType] = useState("round-trip");
   const [searchResults, setSearchResults] = useState([]);
   const [formData, setFormData] = useState({
@@ -40,10 +169,6 @@ export const FlightSearch = () => {
     }));
   };
 
-  function getAirportNameByCode(code) {
-    const airport = INDIAN_AIRPORTS.find((airport) => airport.code === code);
-    return airport ? airport.name : "Airport not found";
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -84,6 +209,9 @@ export const FlightSearch = () => {
                   setFormData((prev) => ({ ...prev, returnDate: "" }));
                   setSearchResults([]);
                   setTripType("one-way");
+                  setSelectedFlight(null);
+                  setReturnFlight(null);
+                  setSelectedPrice(null);
                 }}
               >
                 One Way
@@ -98,6 +226,9 @@ export const FlightSearch = () => {
                   setFormData((prev) => ({ ...prev, returnDate: "" }));
                   setSearchResults([]);
                   setTripType("round-trip");
+                   setSelectedFlight(null);
+                  setReturnFlight(null);
+                  setSelectedPrice(null);
                 }}
               >
                 Round Trip
@@ -307,7 +438,9 @@ export const FlightSearch = () => {
                               <div className="text-xl font-semibold text-gray-800">
                                 ₹{flight.price}
                               </div>
-                              <button className="mt-2 px-4 py-1 bg-blue-900 text-white text-sm rounded-md hover:bg-blue-800">
+                              <button 
+                              onClick={() => handleBookClick(flight)}
+                              className="mt-2 px-4 py-1 bg-blue-900 text-white text-sm rounded-md hover:bg-blue-800">
                                 Book →
                               </button>
                             </div>
@@ -360,7 +493,8 @@ export const FlightSearch = () => {
                               <div className="text-xl font-semibold text-gray-800">
                                 ₹{flight.price}
                               </div>
-                              <button className="mt-2 px-4 py-1 bg-blue-900 text-white text-sm rounded-md hover:bg-blue-800">
+                              <button className="mt-2 px-4 py-1 bg-blue-900 text-white text-sm rounded-md hover:bg-blue-800"
+                               onClick={() => handleBookClick(flight)}>
                                 Book →
                               </button>
                             </div>
@@ -379,6 +513,17 @@ export const FlightSearch = () => {
           </div>
         </div>
       </div>
+
+       {showBookingModal && selectedFlight && (
+        <BookingModal
+          flight={selectedFlight}
+          returnFlight={selectedReturn}
+          passengers={formData.passengers}
+          price={selectedPrice}
+          onClose={() => setShowBookingModal(false)}
+          onConfirm={handleConfirmBooking}
+        />
+      )}
     </div>
   );
 };
